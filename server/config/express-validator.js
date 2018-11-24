@@ -1,16 +1,9 @@
-import { Types } from 'mongoose';
 import customValidator from 'express-validator';
-import validator from 'validator';
 import moment from 'moment';
-import util from 'util';
 import countries from './json/countries.json';
 
 export default customValidator({
     customValidators: {
-        isIdValid(value, id) {
-            return value.match(/^[0-9a-fA-F]{24}$/) &&
-                   Types.ObjectId.isValid(value);
-        },
         isShortDate(value, id) {
             return moment(value, 'YYYY-MM-DD').isValid();
         },

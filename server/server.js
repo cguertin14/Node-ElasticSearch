@@ -1,11 +1,8 @@
 // Imports.
 import './config/config';
-import './config/passport';
-import './db/mongoose';
+import './db/elastic';
 import './config/i18n';
-import './config/cache';
 import express from 'express';
-import passport from 'passport/lib';
 
 // Express config.
 const port = process.env.PORT || 3000;
@@ -25,16 +22,9 @@ app.use(require('i18n').init);
 app.use(require('./api/middlewares/locale').default);
 app.use(require('./config/rateLimiter').default);
 app.use(require('./config/session').default);
-app.use(passport.initialize());
-app.use(passport.session());
 
 // Routes.
-app.use('/users', require('./api/routes/user').default);
-app.use('/facebook', require('./api/routes/facebook').default);
-app.use('/images', require('./api/routes/image').default);
-app.use('/friends', require('./api/routes/friend').default);
-app.use('/cards', require('./api/routes/card').default);
-app.use('/notifications', require('./api/routes/notification').default);
+app.use('/elastic', require('./api/routes/elastic').default);
 
 // Global error handler.
 app.use(require('./api/exceptions/errorRegister').errorHandler);

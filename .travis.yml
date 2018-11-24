@@ -3,14 +3,13 @@ node_js:
   - "10"
 dist: trusty
 services:
-  - mongodb
+  - elasticsearch
   - redis-server
 env:
   - NODE_ENV=ci PORT=3000 JWT_SECRET=ashujdashdsadhjksahjkdhjal
 cache:
   directories:
     - node_modules
-    - client/node_modules
 install:
   - npm install
 script:

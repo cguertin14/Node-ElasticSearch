@@ -1,4 +1,5 @@
 version: '3.6'
+
 services:
   api:
     build: .
@@ -7,39 +8,77 @@ services:
     volumes:
       - .:/usr/src/app
     links:
-      - elastic
-      - kibana
+      - elasticsearch
+      - redis
     depends_on:
-      - elastic
+      - elasticsearch
       - kibana
+      - logstash
+      - redis
     networks:
       - backend
     expose: 
       - 3000
   
-  elastic:
-    image: elasticsearch:6.5.0
+  elasticsearch:
+    build:
+      context: deployment/elasticsearch/
+      args:
+        ELK_VERSION: $ELK_VERSION
     volumes:
-      - elastic:/data/db/
-    networks:
-      - backend
+      - ./deployment/elasticsearch/config/elasticsearch.yml:/usr/share/deployment/elasticsearch/config/elasticsearch.yml:ro
     ports:
       - "9200:9200"
-    expose:
-      - 9200
+      - "9300:9300"
+    environment:
+      ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+    networks:
+      - backend
 
   kibana:
-    image: kibana:6.5.0
+    build:
+      context: deployment/kibana/
+      args:
+        ELK_VERSION: $ELK_VERSION
+    volumes:
+      - ./deployment/kibana/config/:/usr/share/deployment/kibana/config:ro
+    ports:
+      - "5601:5601"
+    networks:
+      - backend
+    depends_on:
+      - elasticsearch
+
+  logstash:
+    build:
+      context: deployment/logstash/
+      args:
+        ELK_VERSION: $ELK_VERSION
+    volumes:
+      - ./deployment/logstash/config/logstash.yml:/usr/share/deployment/logstash/config/logstash.yml:ro
+      - ./deployment/logstash/pipeline:/usr/share/deployment/logstash/pipeline:ro
+    ports:
+      - "5000:5000"
+      - "9600:9600"
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+    networks:
+      - backend
+    depends_on:
+      - elasticsearch
+
+  redis:
+    image: redis
+    volumes: 
+      - redis:/data/db/
     networks:
       - backend
     ports:
-      - "5601:5601"
-    expose:
-      - 5601
+      - "6379:6379"
 
   nginx:
     image: nginx
-    build: ./nginx
+    build: deployment/nginx
     ports:
       - "8080:80"
     depends_on:
@@ -50,6 +89,7 @@ services:
 
 networks:
   backend:
+    driver: bridge
 
 volumes:
-  elastic:
+  redis:
